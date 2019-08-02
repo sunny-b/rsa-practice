@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"math/big"
 	"net/http"
 	"strings"
@@ -38,14 +39,16 @@ func main() {
 }
 
 func sendEncryptedMessage(w http.ResponseWriter, r *http.Request) {
-	log.Info("received request")
+	logToConsole("received request")
 
 	parsedReq := &request{}
 	json.NewDecoder(r.Body).Decode(parsedReq)
 
 	defer r.Body.Close()
 
-	log.Infof("public key from client: %s", truncate(parsedReq.PublicKey))
+	sleep()
+
+	logToConsole("public key from client - %s", truncate(parsedReq.PublicKey))
 
 	strVals := strings.Split(parsedReq.PublicKey, "+")
 
@@ -65,9 +68,12 @@ func sendEncryptedMessage(w http.ResponseWriter, r *http.Request) {
 
 	msgInt := new(big.Int).SetBytes(secretMessage)
 
+	// encrypting message using the cipher = (msg**E)(mod N) rsa encryption algorithm
 	em := new(big.Int).Exp(msgInt, e, n)
 
-	log.Infof("sending encrypted message: %s", truncate(em.String()))
+	sleep()
+
+	logToConsole("sending encrypted message - %s", truncate(em.String()))
 
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
@@ -78,5 +84,14 @@ func sendEncryptedMessage(w http.ResponseWriter, r *http.Request) {
 }
 
 func truncate(s string) string {
-	return s[:len(s)/2]
+	return s[:len(s)/4]
+}
+
+func sleep() {
+	time.Sleep(2 * time.Second)
+}
+
+func logToConsole(msg string, args ...interface{}) {
+	fmt.Println(fmt.Sprintf("server: "+msg, args...))
+	fmt.Println()
 }
