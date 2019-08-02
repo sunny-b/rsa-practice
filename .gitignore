@@ -1,0 +1,3 @@
+./server/Dockerfile
+./server/deploy.sh
+./server/bin/*
