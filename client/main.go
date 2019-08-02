@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	serverEndpoint = "http://rsa-test.tk/message"
+	serverEndpoint = "http://localhost/message"
 )
 
 var (
@@ -47,7 +47,7 @@ type response struct {
 func main() {
 	logToConsole("generating private key")
 
-	privKey, err := generateKeys(1024)
+	privKey, err := generateKeys(256)
 	if err != nil {
 		log.WithError(err).Fatal("failed to create private key")
 	}
@@ -55,8 +55,6 @@ func main() {
 	req := &request{
 		PublicKey: fmt.Sprintf("%v+%v", privKey.N, privKey.E),
 	}
-
-	sleep()
 
 	logToConsole("sending public key to server - %s", truncate(req.PublicKey))
 
@@ -77,8 +75,6 @@ func main() {
 	em := &response{}
 	json.NewDecoder(resp.Body).Decode(em)
 
-	sleep()
-
 	logToConsole("received message from server - %s", truncate(em.EncryptedMessage))
 
 	cipher, ok := new(big.Int).SetString(em.EncryptedMessage, 10)
@@ -86,14 +82,10 @@ func main() {
 		log.Fatal("failed to parse encrypted message")
 	}
 
-	sleep()
-
-	logToConsole("decrypting message")
+	logToConsole("decrypting message with private key")
 
 	// decrypt via the msg = (c^D)(mod N) algorithm
 	decrypted := new(big.Int).Exp(cipher, privKey.D, privKey.N)
-
-	sleep()
 
 	logToConsole("decrypted message: %s", string(decrypted.Bytes()))
 }
@@ -169,6 +161,7 @@ func sleep() {
 }
 
 func logToConsole(msg string, args ...interface{}) {
+	sleep()
 	fmt.Println(fmt.Sprintf("client: "+msg, args...))
 	fmt.Println()
 }

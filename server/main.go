@@ -46,8 +46,6 @@ func sendEncryptedMessage(w http.ResponseWriter, r *http.Request) {
 
 	defer r.Body.Close()
 
-	sleep()
-
 	logToConsole("public key from client - %s", truncate(parsedReq.PublicKey))
 
 	strVals := strings.Split(parsedReq.PublicKey, "+")
@@ -71,8 +69,6 @@ func sendEncryptedMessage(w http.ResponseWriter, r *http.Request) {
 	// encrypting message using the cipher = (msg**E)(mod N) rsa encryption algorithm
 	em := new(big.Int).Exp(msgInt, e, n)
 
-	sleep()
-
 	logToConsole("sending encrypted message - %s", truncate(em.String()))
 
 	w.WriteHeader(http.StatusOK)
@@ -92,6 +88,7 @@ func sleep() {
 }
 
 func logToConsole(msg string, args ...interface{}) {
+	sleep()
 	fmt.Println(fmt.Sprintf("server: "+msg, args...))
 	fmt.Println()
 }
